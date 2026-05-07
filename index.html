@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HiGym: Learning to act in high-dimensional spaces</title>
+<meta name="description" content="HiGym is a continuous-control benchmark that isolates action-space scaling, with matched task variants spanning tens to hundreds of degrees of freedom." />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <h1>HiGym: Learning to act in high-dimensional spaces</h1>
+    <p class="subtitle">A continuous-control benchmark that isolates action-space scaling.</p>
+    <p class="authors">Author information to be released.</p>
+
+    <nav class="links">
+      <a class="btn" href="assets/higym_paper.pdf">Paper (PDF)</a>
+      <a class="btn" href="#">Code (coming soon)</a>
+      <a class="btn" href="#bibtex">BibTeX</a>
+    </nav>
+  </div>
+</header>
+
+<section class="container">
+  <figure class="headline">
+    <img src="assets/headline.png" alt="HiGym headline figure: Quadruped at increasing DoF and aggregate IQM vs DoF for PPO, TD-MPC2, and TD-M(PC)^2." />
+    <figcaption>
+      <strong>HiGym benchmark overview.</strong>
+      <em>(a)</em> Quadruped embodiment at increasing DoF via HiGym's joint-splitting procedure.
+      <em>(b)</em> Aggregate normalised IQM vs.&nbsp;DoF across all families and tasks: model-based methods degrade far less than PPO, and TD-M(PC)<sup>2</sup>'s policy-constraint loss yields a consistent further gain at high DoF.
+    </figcaption>
+  </figure>
+</section>
+
+<section class="container">
+  <h2>Abstract</h2>
+  <p>
+    Reinforcement learning (RL) performs strongly on continuous-control benchmarks, yet many real-world systems
+    such as articulated robots, musculoskeletal models, and dexterous hands require controlling tens to hundreds
+    of actuators. In this regime, action dimensionality can be a dominant bottleneck, but existing benchmarks
+    often entangle dimensionality with changes in objectives, morphology, or contact dynamics, obscuring how
+    algorithms truly scale.
+  </p>
+  <p>
+    We introduce <strong>HiGym</strong>, a high-dimensional continuous-control benchmark built on DMControl.
+    HiGym comprises six environment families with multiple tasks and six embodiment complexities. We isolate
+    action-space scaling by keeping tasks and dynamics as similar as possible while increasing degrees of
+    freedom via a principled embodiment-scaling procedure that recursively splits joints to reach target
+    dimensionalities. This yields matched task variants that differ primarily in action dimension.
+  </p>
+  <p>
+    Across PPO, TD-MPC2, and TD-M(PC)<sup>2</sup>, we find that model-based methods degrade substantially less
+    as dimensionality increases, preserving higher sample-efficiency and asymptotic performance than model-free
+    baselines. Among model-based methods, TD-M(PC)<sup>2</sup>'s policy-constraint loss provides a consistent
+    further gain at high-DoF locomotion tasks by suppressing value overestimation that arises from a structural
+    mismatch between the learned policy and the planner's behavior policy.
+  </p>
+</section>
+
+<section class="container">
+  <h2>The benchmark</h2>
+  <p>
+    HiGym is built on the DeepMind Control Suite and consists of six environment families spanning diverse
+    morphologies: legged locomotion (Quadruped, Cheetah, Walker), whole-body humanoid control (Humanoid CMU),
+    and planar manipulation (Finger, Reacher). Each family is available at multiple embodiment complexities
+    produced by a principled <em>joint-splitting</em> procedure that recursively subdivides existing joints to
+    reach target dimensionalities while keeping reward, episode length, and overall morphology fixed.
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Environment</th><th>Base DoF</th><th>Scaled DoFs</th><th>Tasks</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Quadruped</td><td>16</td><td>16, 32, 64, 128, 256, 512</td><td>walk, run, escape, fetch</td></tr>
+        <tr><td>Cheetah</td><td>6</td><td>8, 16, 32, 64, 128, 256</td><td>run</td></tr>
+        <tr><td>Walker</td><td>6</td><td>8, 16, 32, 64, 128, 256</td><td>stand, walk, run</td></tr>
+        <tr><td>Finger</td><td>2</td><td>2, 4, 8, 16, 32, 64</td><td>spin, turn_easy, turn_hard</td></tr>
+        <tr><td>Reacher</td><td>2</td><td>2, 4, 8, 16, 32, 64</td><td>easy, hard</td></tr>
+        <tr><td>Humanoid CMU</td><td>56</td><td>80</td><td>stand, walk, run</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <figure>
+    <img src="assets/embodiments.png" alt="Grid of HiGym embodiments at different DoF counts." />
+    <figcaption>HiGym families rendered across DoF variants produced by joint-splitting.</figcaption>
+  </figure>
+</section>
+
+<section class="container">
+  <h2>Key findings</h2>
+
+  <figure>
+    <img src="assets/scaling_curves.png" alt="Scaling curves of PPO, TD-MPC2, and TD-M(PC)^2 across DoF." />
+    <figcaption>
+      <strong>Scaling with action dimensionality.</strong> Model-based methods degrade far more gracefully than
+      PPO as DoF grows; TD-M(PC)<sup>2</sup> further closes the gap on high-DoF locomotion.
+    </figcaption>
+  </figure>
+
+  <figure>
+    <img src="assets/value_overestimation.png" alt="Value overestimation on Reacher-Hard across DoF." />
+    <figcaption>
+      <strong>Value overestimation on Reacher-Hard.</strong> Estimated Q-value (dashed) vs.&nbsp;true Monte-Carlo
+      return (solid) across DoF variants. TD-MPC2's gap grows with DoF; TD-M(PC)<sup>2</sup> substantially reduces
+      it by anchoring the policy to the MPPI distribution.
+    </figcaption>
+  </figure>
+</section>
+
+<section id="bibtex" class="container">
+  <h2>BibTeX</h2>
+<pre><code>@article{higym2026,
+  title  = {HiGym: Learning to act in high-dimensional spaces},
+  author = {Anonymous},
+  year   = {2026},
+  note   = {Under review}
+}</code></pre>
+</section>
+
+<footer>
+  <div class="container">
+    <p>&copy; 2026 HiGym authors. Source on <a href="https://github.com/higym-bench/higym-bench.github.io">GitHub</a>.</p>
+  </div>
+</footer>
+
+</body>
+</html>

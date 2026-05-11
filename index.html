@@ -3,130 +3,531 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>HiGym: Learning to act in high-dimensional spaces</title>
-<meta name="description" content="HiGym is a continuous-control benchmark that isolates action-space scaling, with matched task variants spanning tens to hundreds of degrees of freedom." />
+<title>HiGym: Learning to Act in High-Dimensional Spaces</title>
+<meta name="description" content="HiGym is a continuous-control benchmark that isolates action-space scaling, with matched task variants spanning 2 to 512 degrees of freedom across six embodiment families." />
+<meta property="og:title" content="HiGym: Learning to Act in High-Dimensional Spaces" />
+<meta property="og:description" content="A DMControl-based benchmark that isolates action-space scaling, with matched task variants spanning 2 to 512 degrees of freedom." />
+<meta property="og:image" content="assets/figures/f0_headline.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<header class="hero">
+<div class="topbar">
+  <div class="inner">
+    <a class="brand" href="#top"><em>Hi</em>Gym</a>
+    <nav>
+      <a href="#abstract">Abstract</a>
+      <a href="#splitting">Joint-splitting</a>
+      <a href="#families">Families</a>
+      <a href="#scaling">Scaling</a>
+      <a href="#findings">Findings</a>
+      <a href="#paper">Paper</a>
+    </nav>
+  </div>
+</div>
+
+<header class="hero" id="top">
   <div class="container">
-    <h1>HiGym: Learning to act in high-dimensional spaces</h1>
-    <p class="subtitle">A continuous-control benchmark that isolates action-space scaling.</p>
+    <span class="kicker"><span class="dot"></span>NeurIPS 2026 &nbsp;&middot;&nbsp; Under review</span>
+    <h1>
+      <span class="name">HiGym</span>: Learning to Act in <span class="word">high-dimensional</span> spaces.
+    </h1>
+    <p class="deck">
+      A continuous-control benchmark that isolates action-space scaling, with matched task variants spanning <strong>2 to 512</strong> degrees of freedom across six embodiment families.
+    </p>
     <p class="authors">Author information to be released.</p>
 
-    <nav class="links">
-      <a class="btn" href="assets/higym_paper.pdf">Paper (PDF)</a>
-      <a class="btn" href="#">Code (coming soon)</a>
-      <a class="btn" href="#bibtex">BibTeX</a>
-    </nav>
+    <div class="btnrow">
+      <a class="btn primary" href="assets/higym_paper.pdf">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        Paper
+      </a>
+      <a class="btn" href="https://github.com/higym/HiGym">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+        Code
+      </a>
+      <a class="btn" href="#bibtex">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        BibTeX
+      </a>
+    </div>
+
+    <div class="strip" aria-label="HiGym embodiments">
+      <div class="strip-grid" id="strip-grid"></div>
+    </div>
   </div>
 </header>
 
-<section class="container">
-  <figure class="headline">
-    <img src="assets/headline.png" alt="HiGym headline figure: Quadruped at increasing DoF and aggregate IQM vs DoF for PPO, TD-MPC2, and TD-M(PC)^2." />
-    <figcaption>
-      <strong>HiGym benchmark overview.</strong>
-      <em>(a)</em> Quadruped embodiment at increasing DoF via HiGym's joint-splitting procedure.
-      <em>(b)</em> Aggregate normalised IQM vs.&nbsp;DoF across all families and tasks: model-based methods degrade far less than PPO, and TD-M(PC)<sup>2</sup>'s policy-constraint loss yields a consistent further gain at high DoF.
-    </figcaption>
-  </figure>
-</section>
-
-<section class="container">
-  <h2>Abstract</h2>
-  <p>
-    Reinforcement learning (RL) performs strongly on continuous-control benchmarks, yet many real-world systems
-    such as articulated robots, musculoskeletal models, and dexterous hands require controlling tens to hundreds
-    of actuators. In this regime, action dimensionality can be a dominant bottleneck, but existing benchmarks
-    often entangle dimensionality with changes in objectives, morphology, or contact dynamics, obscuring how
-    algorithms truly scale.
-  </p>
-  <p>
-    We introduce <strong>HiGym</strong>, a high-dimensional continuous-control benchmark built on DMControl.
-    HiGym comprises six environment families with multiple tasks and six embodiment complexities. We isolate
-    action-space scaling by keeping tasks and dynamics as similar as possible while increasing degrees of
-    freedom via a principled embodiment-scaling procedure that recursively splits joints to reach target
-    dimensionalities. This yields matched task variants that differ primarily in action dimension.
-  </p>
-  <p>
-    Across PPO, TD-MPC2, and TD-M(PC)<sup>2</sup>, we find that model-based methods degrade substantially less
-    as dimensionality increases, preserving higher sample-efficiency and asymptotic performance than model-free
-    baselines. Among model-based methods, TD-M(PC)<sup>2</sup>'s policy-constraint loss provides a consistent
-    further gain at high-DoF locomotion tasks by suppressing value overestimation that arises from a structural
-    mismatch between the learned policy and the planner's behavior policy.
-  </p>
-</section>
-
-<section class="container">
-  <h2>The benchmark</h2>
-  <p>
-    HiGym is built on the DeepMind Control Suite and consists of six environment families spanning diverse
-    morphologies: legged locomotion (Quadruped, Cheetah, Walker), whole-body humanoid control (Humanoid CMU),
-    and planar manipulation (Finger, Reacher). Each family is available at multiple embodiment complexities
-    produced by a principled <em>joint-splitting</em> procedure that recursively subdivides existing joints to
-    reach target dimensionalities while keeping reward, episode length, and overall morphology fixed.
-  </p>
-
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>Environment</th><th>Base DoF</th><th>Scaled DoFs</th><th>Tasks</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>Quadruped</td><td>16</td><td>16, 32, 64, 128, 256, 512</td><td>walk, run, escape, fetch</td></tr>
-        <tr><td>Cheetah</td><td>6</td><td>8, 16, 32, 64, 128, 256</td><td>run</td></tr>
-        <tr><td>Walker</td><td>6</td><td>8, 16, 32, 64, 128, 256</td><td>stand, walk, run</td></tr>
-        <tr><td>Finger</td><td>2</td><td>2, 4, 8, 16, 32, 64</td><td>spin, turn_easy, turn_hard</td></tr>
-        <tr><td>Reacher</td><td>2</td><td>2, 4, 8, 16, 32, 64</td><td>easy, hard</td></tr>
-        <tr><td>Humanoid CMU</td><td>56</td><td>80</td><td>stand, walk, run</td></tr>
-      </tbody>
-    </table>
+<section id="abstract" class="no-rule">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Abstract</span>
+      <h2>Action dimensionality, <em>isolated</em>.</h2>
+    </div>
+    <div class="body">
+      <p>
+        Reinforcement learning (RL) performs strongly on continuous control benchmarks, yet many real-world systems such as articulated robots, musculoskeletal models, and dexterous hands require controlling tens to hundreds of actuators. In this regime, action dimensionality can be a dominant bottleneck, but existing benchmarks often entangle dimensionality with changes in objectives, morphology, or contact dynamics, obscuring how algorithms truly scale.
+      </p>
+      <p>
+        We introduce <strong>HiGym</strong>, a high-dimensional continuous control benchmark built on DMControl. HiGym comprises six environment families with multiple tasks and six embodiment complexities. We isolate action-space scaling by keeping tasks and dynamics as similar as possible while increasing degrees of freedom via a principled embodiment-scaling procedure that recursively splits joints to reach target dimensionalities. This yields matched task variants that differ primarily in action dimension.
+      </p>
+      <p>
+        Across PPO, TD-MPC2, and TD-M(PC)<sup>2</sup>, we find that model-based methods degrade substantially less as dimensionality increases, preserving higher sample-efficiency and asymptotic performance than model-free baselines. Among model-based methods, we find that TD-M(PC)<sup>2</sup>'s policy-constraint loss provides a consistent further gain at high DoF locomotion tasks by suppressing value overestimation that arises from a structural mismatch between the learned policy and planner's behavior policy.
+      </p>
+    </div>
   </div>
-
-  <figure>
-    <img src="assets/embodiments.png" alt="Grid of HiGym embodiments at different DoF counts." />
-    <figcaption>HiGym families rendered across DoF variants produced by joint-splitting.</figcaption>
-  </figure>
 </section>
 
-<section class="container">
-  <h2>Key findings</h2>
+<section id="splitting">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Six families, one scaling axis</span>
+      <h2>Joint-splitting: dimensionality <em>without confounds</em>.</h2>
+      <p class="lede">Given a base model with <em>n</em> actuated joints per kinematic chain, HiGym recursively subdivides each chain by inserting intermediate bodies at equal arc-length positions. Three invariants are preserved: <strong>total curvature budget</strong>, <strong>total limb mass</strong>, and <strong>collision geometry</strong>. Reward, episode length, and termination criteria are held identical across DoF variants within a family.</p>
+    </div>
 
-  <figure>
-    <img src="assets/scaling_curves.png" alt="Scaling curves of PPO, TD-MPC2, and TD-M(PC)^2 across DoF." />
-    <figcaption>
-      <strong>Scaling with action dimensionality.</strong> Model-based methods degrade far more gracefully than
-      PPO as DoF grows; TD-M(PC)<sup>2</sup> further closes the gap on high-DoF locomotion.
-    </figcaption>
-  </figure>
+    <div class="split">
+      <p class="split-title">Quadruped: same limb, more joints</p>
+      <div class="split-row">
+        <div class="cell"><div class="frame"><img src="assets/embodiments/quadruped-16.png" alt="Quadruped 16 DoF" loading="lazy"></div><span class="label"><span class="strong">16</span> &middot; base</span></div>
+        <div class="cell"><div class="frame"><img src="assets/embodiments/quadruped_leg-32.png" alt="Quadruped leg 32 DoF" loading="lazy"></div><span class="label"><span class="strong">32</span></span></div>
+        <div class="cell"><div class="frame"><img src="assets/embodiments/quadruped_leg-64.png" alt="Quadruped leg 64 DoF" loading="lazy"></div><span class="label"><span class="strong">64</span></span></div>
+        <div class="cell"><div class="frame"><img src="assets/embodiments/quadruped_leg-128.png" alt="Quadruped leg 128 DoF" loading="lazy"></div><span class="label"><span class="strong">128</span></span></div>
+        <div class="cell"><div class="frame"><img src="assets/embodiments/quadruped_leg-256.png" alt="Quadruped leg 256 DoF" loading="lazy"></div><span class="label"><span class="strong">256</span></span></div>
+        <div class="cell"><div class="frame"><img src="assets/embodiments/quadruped_leg-512.png" alt="Quadruped leg 512 DoF" loading="lazy"></div><span class="label"><span class="strong">512</span></span></div>
+      </div>
 
-  <figure>
-    <img src="assets/value_overestimation.png" alt="Value overestimation on Reacher-Hard across DoF." />
-    <figcaption>
-      <strong>Value overestimation on Reacher-Hard.</strong> Estimated Q-value (dashed) vs.&nbsp;true Monte-Carlo
-      return (solid) across DoF variants. TD-MPC2's gap grows with DoF; TD-M(PC)<sup>2</sup> substantially reduces
-      it by anchoring the policy to the MPPI distribution.
-    </figcaption>
-  </figure>
+      <p class="split-title" style="margin-top: 28px;">Cheetah: identical reach, denser actuators</p>
+      <div class="split-row">
+        <div class="cell"><div class="frame"><img src="assets/embodiments/cheetah-8.png" alt="Cheetah 8 DoF" loading="lazy"></div><span class="label"><span class="strong">8</span> &middot; base</span></div>
+        <div class="cell"><div class="frame"><img src="assets/embodiments/cheetah_leg-16.png" alt="Cheetah leg 16 DoF" loading="lazy"></div><span class="label"><span class="strong">16</span></span></div>
+        <div class="cell"><div class="frame"><img src="assets/embodiments/cheetah_leg-32.png" alt="Cheetah leg 32 DoF" loading="lazy"></div><span class="label"><span class="strong">32</span></span></div>
+        <div class="cell"><div class="frame"><img src="assets/embodiments/cheetah_leg-64.png" alt="Cheetah leg 64 DoF" loading="lazy"></div><span class="label"><span class="strong">64</span></span></div>
+        <div class="cell"><div class="frame"><img src="assets/embodiments/cheetah_leg-128.png" alt="Cheetah leg 128 DoF" loading="lazy"></div><span class="label"><span class="strong">128</span></span></div>
+        <div class="cell"><div class="frame"><img src="assets/embodiments/cheetah_leg-256.png" alt="Cheetah leg 256 DoF" loading="lazy"></div><span class="label"><span class="strong">256</span></span></div>
+      </div>
+
+    </div>
+  </div>
 </section>
 
-<section id="bibtex" class="container">
-  <h2>BibTeX</h2>
-<pre><code>@article{higym2026,
-  title  = {HiGym: Learning to act in high-dimensional spaces},
-  author = {Anonymous},
-  year   = {2026},
-  note   = {Under review}
-}</code></pre>
+<section id="families">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Overview</span>
+      <h2>HiGym:<em> Our Benchmark</em></h2>
+      <p class="lede">Legged locomotion (Quadruped, Cheetah, Walker), whole-body humanoid control (Humanoid CMU), and planar manipulation (Finger, Reacher), each instantiated at multiple matched DoF variants. Videos below show TD-M(PC)<sup>2</sup> policies at a representative DoF.</p>
+    </div>
+
+    <div class="family-grid-big" id="family-grid"></div>
+  </div>
+</section>
+
+<section id="scaling">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Interactive</span>
+      <h2>Scrub through <em>dimensionality</em>.</h2>
+      <p class="lede">Pick a family and a DoF to watch the converged TD-M(PC)<sup>2</sup> policy, alongside the close-up that reveals joint subdivision and the matching embodiment render.</p>
+    </div>
+
+    <div class="scaler" id="scaler">
+      <div class="stage">
+        <div class="main">
+          <span class="overlay">DoF&nbsp;=&nbsp;<b id="scaler-dof">128</b>&nbsp;&middot;&nbsp;<span id="scaler-task">run</span></span>
+          <img id="scaler-image" src="assets/embodiments/quadruped-128.png" alt="Embodiment at selected DoF" />
+          <video id="scaler-video" muted playsinline loop autoplay style="display:none"></video>
+        </div>
+        <div class="closeup-row">
+          <div class="cell">
+            <img id="scaler-closeup" src="assets/embodiments/quadruped_leg-128.png" alt="Leg close-up at selected DoF" />
+            <span class="lbl" id="scaler-closeup-lbl">leg close-up</span>
+          </div>
+          <div class="cell">
+            <img id="scaler-emb" src="assets/embodiments/quadruped-128.png" alt="Embodiment image at selected DoF" />
+            <span class="lbl" id="scaler-emb-lbl">DoF &middot; 128</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <h3>Family</h3>
+        <div class="switcher" role="tablist">
+          <button class="on" data-family="quadruped">Quadruped</button>
+          <button data-family="cheetah">Cheetah</button>
+          <button data-family="walker">Walker</button>
+          <button data-family="finger">Finger</button>
+          <button data-family="reacher">Reacher</button>
+          <button data-family="humanoid_CMU">Humanoid CMU</button>
+        </div>
+        <h3 style="margin-top: 18px;">Degrees of freedom</h3>
+        <input id="scaler-range" type="range" min="0" max="5" step="1" value="3" aria-label="DoF index" />
+        <div class="ticks" id="scaler-ticks"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="findings">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Three findings</span>
+      <h2>What scales, what doesn't, <em>and why</em>.</h2>
+    </div>
+
+    <div class="findings">
+      <div class="finding">
+        <span class="num">01</span>
+        <h3>Dimensionality is a universal bottleneck.</h3>
+        <p>Every algorithm degrades with <em>d</em>, but the failure mode differs by class: PPO fails to learn beyond 32 to 64 DoF, and we trace this collapse to PPO's clipped surrogate objective.</p>
+      </div>
+      <div class="finding">
+        <span class="num">02</span>
+        <h3>Model-based methods are substantially more robust.</h3>
+        <p>Both TD-MPC2 variants preserve sample efficiency and asymptotic performance at high DoF, suggesting that planning in a fixed-dimensional latent space might scale better than on-policy rollouts in the physical action space.</p>
+      </div>
+      <div class="finding">
+        <span class="num">03</span>
+        <h3>The policy-constraint loss of TD-M(PC)<sup>2</sup> predominantly helps in locomotion families.</h3>
+        <p>Its margin over TD-MPC2 widens monotonically with <em>d</em> in locomotion but is limited in manipulation, indicating that its benefit is family-dependent rather than uniform across high-DoF tasks.</p>
+      </div>
+    </div>
+
+    <div class="figure-block">
+      <img src="assets/figures/f6_avg_ranking.png" alt="Algorithm ranking by DoF and per embodiment family.">
+      <div class="cap">
+        <p><strong>Algorithm ranking by DoF (panel a).</strong> Mean rank averaged across all (family, task) cells at each DoF; bootstrap 95&percnt; CIs. PPO holds rank near 3 throughout; TD-MPC2 starts near rank 1.5 and degrades toward 2.5 at 128 to 256 DoF as value overestimation intensifies; TD-M(PC)<sup>2</sup> maintains rank 1 at high DoF.</p>
+        <p><strong>Per-embodiment ranking (panel b).</strong> TD-M(PC)<sup>2</sup>'s policy-constraint loss is most helpful for locomotion families (Cheetah, Walker, Quadruped, Humanoid CMU) and less so for manipulation (Finger, Reacher), where the underlying task remains effectively low-dimensional.</p>
+      </div>
+    </div>
+
+    <div class="figure-block">
+      <img src="assets/figures/value_overestimation_reacher.png" alt="Value overestimation on Reacher-Hard across DoF.">
+      <div class="cap">
+        <p><strong>Value overestimation on Reacher-Hard.</strong> Estimated Q-value (dashed) versus true Monte-Carlo return (solid) across DoF variants. TD-MPC2's gap grows with DoF; TD-M(PC)<sup>2</sup> substantially reduces it by anchoring the policy to the MPPI distribution.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="paper">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Read the paper</span>
+      <h2>HiGym: Learning to Act in <em>High-Dimensional</em> Spaces.</h2>
+      <p class="lede">Submitted to NeurIPS 2026. Currently under review.</p>
+    </div>
+    <div class="btnrow" style="display: flex; justify-content: flex-start;">
+      <a class="btn primary" href="assets/higym_paper.pdf">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        Download PDF
+      </a>
+      <a class="btn" href="#bibtex">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        BibTeX
+      </a>
+    </div>
+  </div>
+</section>
+
+<section id="bibtex">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Citation</span>
+      <h2>BibTeX</h2>
+    </div>
+    <pre class="bibtex" id="bib">@inproceedings{higym2026,
+  title     = {HiGym: Learning to Act in High-Dimensional Spaces},
+  author    = {Anonymous},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2026},
+  note      = {Under review}
+}</pre>
+  </div>
 </section>
 
 <footer>
   <div class="container">
-    <p>&copy; 2026 HiGym authors. Source on <a href="https://github.com/higym-bench/higym-bench.github.io">GitHub</a>.</p>
+    <a class="top" href="#top">&uarr; Return to top</a>
+    <div>HiGym &copy; 2026 &middot; <a href="https://github.com/higym-bench/higym-bench.github.io">Source</a></div>
   </div>
 </footer>
+
+<script>
+(function () {
+  /* Per-DoF override: when set, the listed (algo, seeds) is tried first.
+     Used to force finger-64 to the pclossfalse (tdmpc2_vanilla) checkpoint. */
+  const CELL_OVERRIDES = {
+    "finger-64-spin":    { algo: "tdmpc2_vanilla", seeds: [1, 2] },
+    "walker-32-run":     { algo: "tdmpc2_vanilla", seeds: [1, 2] },
+    "cheetah-128-run":   { algo: "tdmpc2_pc",      seeds: [1, 2] },
+  };
+
+  const VIDEO_CANDIDATES = [
+    { algo: "tdmpc2_pc",      seeds: [1, 2] },
+    { algo: "tdmpc2_vanilla", seeds: [1, 2] },
+    { algo: "ppo",            seeds: [1, 2] },
+  ];
+
+  function videoCandidates(family, dof, task, preferred) {
+    const out = [];
+    const ovr = CELL_OVERRIDES[`${family}-${dof}-${task}`];
+    if (ovr) {
+      for (const s of (ovr.seeds || [1, 2])) out.push(`assets/videos/${family}-${dof}-${task}-${ovr.algo}-s${s}.mp4`);
+    } else if (preferred) {
+      for (const s of (preferred.seeds || [1, 2])) out.push(`assets/videos/${family}-${dof}-${task}-${preferred.algo}-s${s}.mp4`);
+    }
+    for (const { algo, seeds } of VIDEO_CANDIDATES) {
+      const skip = (ovr && ovr.algo === algo) || (!ovr && preferred && preferred.algo === algo);
+      if (skip) continue;
+      for (const s of seeds) out.push(`assets/videos/${family}-${dof}-${task}-${algo}-s${s}.mp4`);
+    }
+    return out;
+  }
+
+  function imageFor(family, dof) {
+    return `assets/embodiments/${family}-${dof}.png`;
+  }
+
+  function legImageFor(family, dof) {
+    if (family === "humanoid_CMU") return `assets/embodiments/humanoid_CMU_armleg-${dof}.png`;
+    if (family === "quadruped")    return `assets/embodiments/quadruped_leg-${dof}.png`;
+    if (family === "cheetah")      return `assets/embodiments/cheetah_leg-${dof}.png`;
+    if (family === "walker")       return `assets/embodiments/walker_leg-${dof}.png`;
+    if (family === "finger")       return `assets/embodiments/finger_leg-${dof}.png`;
+    if (family === "reacher")      return `assets/embodiments/reacher_leg-${dof}.png`;
+    return null;
+  }
+
+  function legLabelFor(family) {
+    if (family === "humanoid_CMU") return "arm + leg close-up";
+    if (family === "finger")       return "chain close-up";
+    if (family === "reacher")      return "chain close-up";
+    return "leg close-up";
+  }
+
+  async function firstAvailable(urls) {
+    for (const u of urls) {
+      try {
+        const r = await fetch(u, { method: "HEAD" });
+        if (r.ok) return u;
+      } catch (e) { /* try next */ }
+    }
+    return null;
+  }
+
+  function attachVideoTo(cell, videoUrl) {
+    const v = document.createElement("video");
+    v.muted = true; v.autoplay = true; v.loop = true; v.playsInline = true;
+    v.preload = "metadata";
+    v.src = videoUrl;
+    v.addEventListener("loadeddata", () => {
+      const el = cell.querySelector("img");
+      if (el) el.replaceWith(v);
+    });
+  }
+
+  /* ---- Hero strip: 12 specific cells the user chose ---- */
+  const HERO_CELLS = [
+    { family: "quadruped",    dof: 64,  task: "run",  label: "quadruped·64",   pref: { algo: "tdmpc2_pc" } },
+    { family: "quadruped",    dof: 128, task: "run",  label: "quadruped·128",  pref: { algo: "tdmpc2_pc" } },
+    { family: "quadruped",    dof: 256, task: "run",  label: "quadruped·256",  pref: { algo: "tdmpc2_pc" } },
+    { family: "cheetah",      dof: 32,  task: "run",  label: "cheetah·32",     pref: { algo: "tdmpc2_pc" } },
+    { family: "cheetah",      dof: 64,  task: "run",  label: "cheetah·64",     pref: { algo: "tdmpc2_pc" } },
+    { family: "cheetah",      dof: 128, task: "run",  label: "cheetah·128",    pref: { algo: "tdmpc2_pc" } },
+    { family: "walker",       dof: 32,  task: "run",  label: "walker·32",      pref: { algo: "tdmpc2_pc" } },
+    { family: "walker",       dof: 128, task: "run",  label: "walker·128",     pref: { algo: "tdmpc2_pc" } },
+    { family: "finger",       dof: 64,  task: "spin", label: "finger·64",      pref: { algo: "tdmpc2_vanilla" } },
+    { family: "reacher",      dof: 64,  task: "hard", label: "reacher·64",     pref: { algo: "tdmpc2_pc" } },
+    { family: "humanoid_CMU", dof: 56,  task: "walk", label: "humanoid·56",    pref: { algo: "tdmpc2_pc" } },
+    { family: "humanoid_CMU", dof: 80,  task: "walk", label: "humanoid·80",    pref: { algo: "tdmpc2_pc" } },
+  ];
+
+  function buildHeroStrip() {
+    const grid = document.getElementById("strip-grid");
+    if (!grid) return;
+    for (const c of HERO_CELLS) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.innerHTML = `<img src="${imageFor(c.family, c.dof)}" alt="${c.label}" loading="lazy"><span class="tag">${c.label}</span>`;
+      grid.appendChild(cell);
+      firstAvailable(videoCandidates(c.family, c.dof, c.task, c.pref)).then((vu) => {
+        if (vu) attachVideoTo(cell, vu);
+      });
+    }
+  }
+
+  /* ---- Combined Families section: enlarged trained-policy video per family.
+         Tag/table aesthetic for the metadata strip below each video. ---- */
+  const FAMILY_CARDS = [
+    { family: "quadruped",    dof: 64, task: "run",  title: "Quadruped",
+      base: 16, scaled: [16, 32, 64, 128, 256, 512],   tasks: ["walk", "run", "escape", "fetch"],
+      pref: { algo: "tdmpc2_pc" } },
+    { family: "cheetah",      dof: 64, task: "run",  title: "Cheetah",
+      base: 6,  scaled: [8, 16, 32, 64, 128, 256],      tasks: ["run"],
+      pref: { algo: "tdmpc2_pc" } },
+    { family: "walker",       dof: 64, task: "run",  title: "Walker",
+      base: 6,  scaled: [8, 16, 32, 64, 128, 256],      tasks: ["stand", "walk", "run"],
+      pref: { algo: "tdmpc2_pc" } },
+    { family: "finger",       dof: 32, task: "spin", title: "Finger",
+      base: 2,  scaled: [2, 4, 8, 16, 32, 64],          tasks: ["spin", "turn_easy", "turn_hard"],
+      pref: { algo: "tdmpc2_pc" } },
+    { family: "reacher",      dof: 64, task: "hard", title: "Reacher",
+      base: 2,  scaled: [2, 4, 8, 16, 32, 64],          tasks: ["easy", "hard"],
+      pref: { algo: "tdmpc2_pc" } },
+    { family: "humanoid_CMU", dof: 80, task: "walk", title: "Humanoid CMU",
+      base: 56, scaled: [56, 80],                        tasks: ["stand", "walk", "run"],
+      pref: { algo: "tdmpc2_pc" } },
+  ];
+
+  function buildFamilyGrid() {
+    const grid = document.getElementById("family-grid");
+    if (!grid) return;
+    for (const c of FAMILY_CARDS) {
+      const card = document.createElement("div");
+      card.className = "family-big";
+      const scaledRange = `${c.scaled[0]} → ${c.scaled[c.scaled.length - 1]}`;
+      const tasksHtml = c.tasks.map(t => `<span class="tag">${t}</span>`).join("");
+      const algoLabel = c.pref.algo === "tdmpc2_pc" ? "TD-M(PC)²" : (c.pref.algo === "tdmpc2_vanilla" ? "TD-MPC2" : "PPO");
+      card.innerHTML = `
+        <div class="frame"><img src="${imageFor(c.family, c.dof)}" alt="${c.title}" loading="lazy"></div>
+        <div class="meta">
+          <header><h3>${c.title}</h3><span class="dof-tag">DoF ${c.dof} · ${algoLabel}</span></header>
+          <table class="info">
+            <tr><th>Base</th><td class="mono">${c.base}</td></tr>
+            <tr><th>Scaled</th><td class="mono">${scaledRange} <span class="muted">(${c.scaled.length} variants)</span></td></tr>
+            <tr><th>Tasks</th><td class="tags">${tasksHtml}</td></tr>
+          </table>
+        </div>`;
+      grid.appendChild(card);
+      firstAvailable(videoCandidates(c.family, c.dof, c.task, c.pref)).then((vu) => {
+        if (vu) attachVideoTo(card.querySelector(".frame"), vu);
+      });
+    }
+  }
+
+  /* ---- DoF slider over every family, every DoF ---- */
+  const FAMILIES = {
+    quadruped:    { dofs: [16, 32, 64, 128, 256, 512], task: "run",  pref: { algo: "tdmpc2_pc" } },
+    cheetah:      { dofs: [8, 16, 32, 64, 128, 256],   task: "run",  pref: { algo: "tdmpc2_pc" } },
+    walker:       { dofs: [8, 16, 32, 64, 128, 256],   task: "run",  pref: { algo: "tdmpc2_pc" } },
+    finger:       { dofs: [2, 4, 8, 16, 32, 64],       task: "spin", pref: { algo: "tdmpc2_pc" } },
+    reacher:      { dofs: [2, 4, 8, 16, 32, 64],       task: "hard", pref: { algo: "tdmpc2_pc" } },
+    humanoid_CMU: { dofs: [56, 80],                    task: "walk", pref: { algo: "tdmpc2_pc" } },
+  };
+
+  const root        = document.getElementById("scaler");
+  const range       = document.getElementById("scaler-range");
+  const ticksEl     = document.getElementById("scaler-ticks");
+  const dofLabel    = document.getElementById("scaler-dof");
+  const taskLabel   = document.getElementById("scaler-task");
+  const imgFull     = document.getElementById("scaler-image");
+  const videoFull   = document.getElementById("scaler-video");
+  const imgClose    = document.getElementById("scaler-closeup");
+  const closeupLbl  = document.getElementById("scaler-closeup-lbl");
+  const imgEmb      = document.getElementById("scaler-emb");
+  const embLbl      = document.getElementById("scaler-emb-lbl");
+  const switchBtns  = root ? root.querySelectorAll(".switcher button") : [];
+
+  let currentFamily = "quadruped";
+  let currentIndex = 3;
+  let pendingId = 0;
+
+  function renderTicks() {
+    const fam = FAMILIES[currentFamily];
+    ticksEl.innerHTML = "";
+    fam.dofs.forEach((d, i) => {
+      const b = document.createElement("button");
+      b.textContent = d;
+      b.className = i === currentIndex ? "on" : "";
+      b.addEventListener("click", () => setIndex(i));
+      ticksEl.appendChild(b);
+    });
+  }
+
+  function setFamily(name) {
+    currentFamily = name;
+    const fam = FAMILIES[name];
+    range.max = String(fam.dofs.length - 1);
+    if (currentIndex >= fam.dofs.length) currentIndex = fam.dofs.length - 1;
+    range.value = String(currentIndex);
+    switchBtns.forEach(b => b.classList.toggle("on", b.dataset.family === name));
+    update();
+    renderTicks();
+  }
+
+  function setIndex(i) {
+    currentIndex = i;
+    range.value = String(i);
+    update();
+    renderTicks();
+  }
+
+  function update() {
+    const fam = FAMILIES[currentFamily];
+    const dof = fam.dofs[currentIndex];
+    dofLabel.textContent = String(dof);
+    if (taskLabel) taskLabel.textContent = fam.task;
+
+    // Top stage: start with embodiment image; swap in video on load.
+    imgFull.src = imageFor(currentFamily, dof);
+    imgFull.style.display = "";
+    videoFull.style.display = "none";
+    videoFull.removeAttribute("src");
+
+    // Bottom-left: leg / limb close-up at the current DoF.
+    const leg = legImageFor(currentFamily, dof);
+    imgClose.src = leg || imageFor(currentFamily, dof);
+    closeupLbl.textContent = legLabelFor(currentFamily);
+
+    // Bottom-right: full embodiment at the current DoF.
+    imgEmb.src = imageFor(currentFamily, dof);
+    embLbl.textContent = `DoF · ${dof}`;
+
+    // Upgrade the main stage to a video for this cell.
+    const reqId = ++pendingId;
+    firstAvailable(videoCandidates(currentFamily, dof, fam.task, fam.pref)).then((vu) => {
+      if (!vu || reqId !== pendingId) return;
+      videoFull.src = vu;
+      videoFull.muted = true;
+      videoFull.autoplay = true;
+      videoFull.loop = true;
+      videoFull.playsInline = true;
+      videoFull.preload = "metadata";
+      videoFull.addEventListener("loadeddata", () => {
+        if (reqId !== pendingId) return;
+        imgFull.style.display = "none";
+        videoFull.style.display = "";
+        videoFull.play().catch(() => {});
+      }, { once: true });
+    });
+  }
+
+  if (root) {
+    range.addEventListener("input", e => setIndex(parseInt(e.target.value, 10)));
+    switchBtns.forEach(b => b.addEventListener("click", () => setFamily(b.dataset.family)));
+    setFamily(currentFamily);
+  }
+
+  buildHeroStrip();
+  buildFamilyGrid();
+
+  /* BibTeX click-to-select */
+  const bib = document.getElementById("bib");
+  if (bib) {
+    bib.addEventListener("click", () => {
+      const r = document.createRange();
+      r.selectNodeContents(bib);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(r);
+    });
+  }
+})();
+</script>
 
 </body>
 </html>

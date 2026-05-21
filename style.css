@@ -281,6 +281,16 @@ h3 {
 }
 .lede strong { color: var(--ink); font-weight: 600; }
 .body { max-width: 680px; }
+
+/* Sections with image/video panels: text spans the full panel width.
+   Findings keeps the narrower reading column. */
+#abstract .body,
+#splitting .lede,
+#families .lede,
+#scaling .lede,
+#paper .lede {
+  max-width: none;
+}
 .body p { color: var(--ink-2); }
 .body p strong { color: var(--ink); }
 

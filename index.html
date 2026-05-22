@@ -272,20 +272,33 @@
     { algo: "ppo",            seeds: [1, 2] },
   ];
 
-  function videoCandidates(family, dof, task, preferred) {
+  function candidatesIn(base, family, dof, task, preferred) {
     const out = [];
     const ovr = CELL_OVERRIDES[`${family}-${dof}-${task}`];
     if (ovr) {
-      for (const s of (ovr.seeds || [1, 2])) out.push(`assets/videos/${family}-${dof}-${task}-${ovr.algo}-s${s}.mp4`);
+      for (const s of (ovr.seeds || [1, 2])) out.push(`${base}/${family}-${dof}-${task}-${ovr.algo}-s${s}.mp4`);
     } else if (preferred) {
-      for (const s of (preferred.seeds || [1, 2])) out.push(`assets/videos/${family}-${dof}-${task}-${preferred.algo}-s${s}.mp4`);
+      for (const s of (preferred.seeds || [1, 2])) out.push(`${base}/${family}-${dof}-${task}-${preferred.algo}-s${s}.mp4`);
     }
     for (const { algo, seeds } of VIDEO_CANDIDATES) {
       const skip = (ovr && ovr.algo === algo) || (!ovr && preferred && preferred.algo === algo);
       if (skip) continue;
-      for (const s of seeds) out.push(`assets/videos/${family}-${dof}-${task}-${algo}-s${s}.mp4`);
+      for (const s of seeds) out.push(`${base}/${family}-${dof}-${task}-${algo}-s${s}.mp4`);
     }
     return out;
+  }
+
+  // Hero strip keeps the original low-res videos. The family grid and DoF
+  // slider pass hd=true to prefer HD renders (assets/videos_hd), falling back
+  // to the low-res files if an HD render is missing.
+  function videoCandidates(family, dof, task, preferred, hd) {
+    if (hd) {
+      return [
+        ...candidatesIn("assets/videos_hd", family, dof, task, preferred),
+        ...candidatesIn("assets/videos", family, dof, task, preferred),
+      ];
+    }
+    return candidatesIn("assets/videos", family, dof, task, preferred);
   }
 
   function imageFor(family, dof) {
@@ -403,7 +416,7 @@
           </table>
         </div>`;
       grid.appendChild(card);
-      firstAvailable(videoCandidates(c.family, c.dof, c.task, c.pref)).then((vu) => {
+      firstAvailable(videoCandidates(c.family, c.dof, c.task, c.pref, true)).then((vu) => {
         if (vu) attachVideoTo(card.querySelector(".frame"), vu);
       });
     }
@@ -489,7 +502,7 @@
 
     // Upgrade the main stage to a video for this cell.
     const reqId = ++pendingId;
-    firstAvailable(videoCandidates(currentFamily, dof, fam.task, fam.pref)).then((vu) => {
+    firstAvailable(videoCandidates(currentFamily, dof, fam.task, fam.pref, true)).then((vu) => {
       if (!vu || reqId !== pendingId) return;
       videoFull.src = vu;
       videoFull.muted = true;
